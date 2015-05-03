@@ -4,8 +4,8 @@
 wavファイルのヘッダを表示する
 
 ## ファイル構成
-wav_file
-+-- wav_program.rb
+wav_file  
++-- wav_program.rb  
 +-- wav_file.rb
 
 ## 使い方 
