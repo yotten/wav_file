@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 class RiffHeader
   attr_reader(:riff, :size, :type)
@@ -11,9 +12,11 @@ class RiffHeader
   end
 
   def print
+    puts "--- RiffHeader ---" 
     puts "riff=#{@riff}"
     puts "size=#{@size}"
     puts "type=#{@type}"
+    puts "---"
   end
 end
 
@@ -23,6 +26,7 @@ class Chank
   def initialize(f)
     @format_tag = f.read(4)
     @format_size = f.read(4).unpack("i").pop
+#    puts "format_size=#{@format_size}"
     @desc = f
   end
 end
@@ -38,12 +42,36 @@ class WavFormatPcm
   end
 
   def print
-    puts "format_id=#{@format_id}"
+    puts "--- WavFormatPcm ---"
+    puts "format_id=#{@format_id}" + wave_format
+    #wave_format 
     puts "channels=#{@channels}"
     puts "ampling_rate=#{@sampling_rate}"
     puts "byte_per_sec=#{@byte_per_sec}"
     puts "block_align=#{@block_align}"
     puts "bits_per_sample=#{@bits_per_sample}"
+    puts "---"
+  end
+
+private
+  def wave_format
+    case @format_id
+    when 0x0000
+      "(WAVE_FORMAT_UNKNOWN)"
+    when 0x0001
+      "(WAVE_FORMAT_PCM)"
+    else
+      "???" 
+    end 
+  end
+end
+
+class DataFormat
+  def initialize(f, size)
+    @desc = f
+    @size = size
+    puts "pos=#{f.tell}"
+    puts "size=#{size}" 
   end
 end
 
@@ -63,13 +91,20 @@ class WavFile
 
   def read_all
     @riff_header = RiffHeader.new(@wav_file) 
-    return if @riff_header.type != "WAVE"
+    raise if @riff_header.type != "WAVE" 
 
     File.open(@wav_file) do |f|
       f.seek(12)
-      chank = Chank.new(f)
-      if chank.format_tag == "fmt "
-        @wav_format = WavFormatPcm.new(chank.desc)  
+      while chank = Chank.new(f) do
+        if chank.format_tag == "fmt "
+          @wav_format = WavFormatPcm.new(chank.desc)
+        elsif chank.format_tag == "data"
+          @data_format = DataFormat.new(chank.desc, chank.format_size) 
+          puts "data!!!!!"
+        else
+          puts "!!!!!!!!"
+          break
+        end
       end
     end
   end

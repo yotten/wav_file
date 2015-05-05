@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require './wav_file.rb'
 
 if ARGV[0] == nil
@@ -8,10 +9,15 @@ end
 wav_file = ARGV[0]
 wav = WavFile.open(wav_file)
 if wav == nil
-  puts "not wav file"
+  puts "not RIFF"
   exit
 end
 
-wav.read_all
+begin
+  wav.read_all
+rescue
+  puts "not WAVE" 
+end
+
 wav.print_riff_header
 wav.print_wav_format
